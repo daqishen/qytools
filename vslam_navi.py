@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Mar  8 13:25:27 2019
 
 @author: qy
+
+python -m pip install numpy 
+python -m pip install matplotlib    
+python -m pip install pandas
+
+
 """
 import sys
 import pandas as pd
