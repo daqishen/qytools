@@ -8,6 +8,9 @@ python -m pip install numpy
 python -m pip install matplotlib    
 python -m pip install pandas
 
+Example:
+       
+python vslam_navi.py vslam.log
 
 """
 import sys

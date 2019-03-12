@@ -10,6 +10,12 @@ python -m pip install matplotlib
 python -m pip install pandas
 
 
+Example:
+       
+python cv_framework.py cv.log
+
+
+
 @author: qy
 """
 
