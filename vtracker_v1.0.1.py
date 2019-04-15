@@ -41,7 +41,9 @@ class Help:
         @author: qy
         """
         return
-
+    def howToUseThisFile(self):
+        
+        return help(self.using_tutorial)
 
 
 class Relocate:
