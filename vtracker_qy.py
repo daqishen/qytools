@@ -11,8 +11,20 @@ import matplotlib.pyplot as plt
 import time
 
 
-filename = "vtracker.log"
-df_raw = pd.read_csv(filename,"\t",header = None, error_bad_lines=False)
+filename = "vtracker1.log"
+try:
+    df_raw = pd.read_csv(filename,"\t",header = None, error_bad_lines=False)
+except:
+    print("can not find the log file")
+df_raw = df_raw[0].str.split("    ",expand = True)    
+df_raw = df_raw[0].str.split("   ",expand = True)
+df_raw = df_raw[0].str.split("  ",expand = True)
+
+# some logs somehow have double space split 
+if df_raw.shape[1] > 1:
+    if df_raw.shape[1] == 2:
+        df_raw[0] = df_raw[0]+' '+df_raw[1]
+
 df_raw = df_raw[0].str.split(" ", expand = True)
 df_raw[3] = df_raw[3].str.split(":", expand = True)
 
