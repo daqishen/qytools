@@ -184,8 +184,7 @@ class Relocate:
         return 
     
 if __name__ == "__main__":
-#    filename = sys.argv[1]
-    filename = "vtracker.log"
+    filename = sys.argv[1]
     if sys.argv[-1] in ('help', '-help','--help'):
         Help().howToUseThisFile()
     else:
