@@ -7,8 +7,8 @@ Created on Fri Apr 19 14:24:38 2019
 """
 
 
-import pandas as pd
 import sys
+import pandas as pd
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,6 +22,8 @@ class Help:
     def using_tutorial():
         """
         Update at Sat Apr 13 10:34:02 2019
+        author: Yue QI
+        email: yue.qi@uisee.com
         
         Depend libraries:
         
@@ -156,12 +158,15 @@ class CVTest:
         
         kps = []
         des = []
+        #reformat:
         
         n = df.shape[0]
         for i in range(n):
             kp = cv2.KeyPoint(df_kp['x'][i],df_kp['y'][i],df_kp['angle'][i], 
                               df_kp['response'][i],df_kp['octave'][i],df_kp['class_id'][i])
             kp.octave = int(df_kp['octave'][i])
+            kp.class_id = int(df_kp['class_id'][i])
+            kp.response = df_kp['response'][i]
             kps.append(kp)
         
         for i in range(n):
@@ -171,6 +176,10 @@ class CVTest:
             desc = np.array(desc)
             des.append(desc)
         des = np.array(des)    
+        print('Total keypoints number from '+ filename+' : '+
+              str(len(kps)))
+        print('Total descriptors number from '+ filename+' : '+
+              str(len(des)))
     
         return kps, des
         
@@ -184,7 +193,8 @@ class CVTest:
         '''
         matching keypoints by descriptors
         
-        matchType = 0 :brute force
+        matchType = 0 :brute force, thr:descriptors'hamming distance
+        matchType = 1 :brute force, thr:keypoints'point location
         
         '''
         
@@ -192,15 +202,15 @@ class CVTest:
         # create BFMatcher object
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
         # Match descriptors.
-        print(type(kp1), type(kp2))
+#        print(type(kp1), type(kp2))
         matches = bf.match(des1,des2)
         
         # Sort them in the order of their distance.
         matches = sorted(matches, key = lambda x:x.distance)
         # Draw first 10 matches.
         goodMatches = []
+        # mode 0:
         if kpmatchType == 0:
-        
             for match in matches:
                 if match.distance > thr:
                     continue
@@ -208,9 +218,8 @@ class CVTest:
                     goodMatches.append(match)
             return matches, goodMatches 
                 
-        
+        # mode 1:
         if kpmatchType == 1:
-            
             x_diff = []
             y_diff = []
             for match in matches:
@@ -241,21 +250,24 @@ class CVTest:
     
     def KPmatches_BF(self, filename_1, filename_2, img1, img2, matchtype):
         '''
-        # brute force matching
+        # brute-force matching
         '''
+        print("decsriptor's matching type: brute force")
         kp1, des1 = self.readfile(filename_1)
         kp2, des2 = self.readfile(filename_2)
         
         # preprocessing
-        print(type(des1))
+
         kp1, des1, kp2, des2 = self.getValidPoints(kp1, des1, kp2, des2)       
-        print(type(des1),'hi')
+
         # find matches in different matchtype
-#        print(kp1[:2],des1[:2])
+        # matchType = 0 :brute force, thr:descriptors'hamming distance
+        # matchType = 1 :brute force, thr:keypoints'point location
+
         matches, goodMatches = self.KPmatch(kp1, des1, kp2, des2, kpmatchType = matchtype) 
         img3 = img1.copy()
-        print(len(des1), len(kp1), len(goodMatches))
-        img3 = cv2.drawMatches(img1,kp1,img2,kp2,goodMatches, img3, flags=2)
+
+        img3 = cv2.drawMatches(img1,kp1,img2,kp2,goodMatches, img3, flags=0)
         plt.imshow(img3)
         plt.title("number of query keypoints: " + str(len(kp1))+"\n"+
                   "number of BF matches: " + str(len(matches))+"\n"+
@@ -271,15 +283,17 @@ class CVTest:
         return
         
     def getValidPoints(self, kp1, des1, kp2, des2):
+        
+        # set threshold        
         thr_class_1 = self.config['IMG_1']['VALID_KP_CLASS']
         thr_layer_1 = self.config['IMG_1']['VALID_KP_LAYER']
         thr_class_2 = self.config['IMG_2']['VALID_KP_CLASS']
         thr_layer_2 = self.config['IMG_2']['VALID_KP_LAYER']   
-#        print(thr_class_1,thr_layer_1,thr_class_2,thr_layer_2)
 
-        
         def get_kp_and_desc(kps, descs, class_thr, layer_thr):
             # class_id filter 
+            print('keypoint class_id threshold:' + str(class_thr))
+            print('keypoint octave layer threshold:' + str(layer_thr))
             valid_class_kps = []
             valid_class_descs = []
             n = len(kps)
@@ -316,12 +330,12 @@ class CVTest:
             valid_descs = valid_layer_descs
 
             return valid_kps, valid_descs
-        
+        print("searching valid keypoints and descriptors from file 1...")
         valid_kp1,valid_des1 = get_kp_and_desc(kp1,des1,thr_class_1,thr_layer_1)
+        print("searching valid keypoints and descriptors from file 2...")
         valid_kp2,valid_des2 = get_kp_and_desc(kp2,des2,thr_class_2,thr_layer_2)
         valid_des1 = np.array(valid_des1)
         valid_des2 = np.array(valid_des2)
-        
         
 #        print(len(valid_kp1),len(valid_des1))
         return valid_kp1, valid_des1, valid_kp2, valid_des2        
@@ -341,6 +355,7 @@ class CVTest:
 
 def ModeProcess(config):
     if config['MATCH_MODE'] == 0:
+        print("Mode 0 has been activated!")
         img_name_1 = config['IMG_1']['IMAGE_DIR']
         filename_1 = config['IMG_1']['FILE_DIR']
         img_name_2 = config['IMG_2']['IMAGE_DIR']
@@ -352,7 +367,7 @@ def ModeProcess(config):
         return
     
     if config['MATCH_MODE'] == 1:
-    
+        print("Mode 1 has been activated!")
         img_name_1 = config['IMG_1']['IMAGE_DIR']
         filename_1 = config['IMG_1']['FILE_DIR']
         img_name_2 = config['IMG_2']['IMAGE_DIR']
@@ -365,6 +380,8 @@ def ModeProcess(config):
     Help().howToUseThisFile()    
     return
     
+        
+
 if __name__ == "__main__":
 
     
@@ -372,11 +389,18 @@ if __name__ == "__main__":
     if sys.argv[-1] in ('help', '-help','--help','h','-h','--h'):
         Help().howToUseThisFile()
     else:
+
         yamlPath = sys.argv[1]
-        f = open(yamlPath, 'r', encoding='utf-8')
+        try:
+            f = open(yamlPath, 'r', encoding='utf-8')
+        except:
+            f = open(yamlPath, 'r')
+            
         cfg = f.read()
         config = yaml.load(cfg)
-        print('config:')
-        print(config)
+#        print('config:')
+#        print(config)
+#        print('\n')
         ModeProcess(config)
+
             
