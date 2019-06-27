@@ -264,6 +264,7 @@ class Regression:
         return df_locate_res
         
     def plotTrackResult(self, df_locate_res):
+        plt.figure("Locate status ")
         plt.subplot(2,1,1)
         df_tracked = df_locate_res[df_locate_res["State"] == 1]
         tracking_rate = df_tracked.shape[0]/df_locate_res.shape[0]
@@ -311,6 +312,7 @@ class Regression:
 #        df_regression["Y_diff"][df_regression["State"] == 0] = -0.1
 #        df_regression["Z_diff"][df_regression["State"] == 0] = -0.1       
         
+        plt.figure("Regression Error")
         plt.subplot(3, 1, 1)
         plt.plot(df_regression["X_diff"])
         #plt.xlabel("Frame")
